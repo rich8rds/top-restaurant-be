@@ -1,4 +1,4 @@
-package com.richards.mealsapp.dto;
+package com.richards.mealsapp.entity;
 
 import lombok.*;
 

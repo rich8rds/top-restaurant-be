@@ -1,4 +1,4 @@
-package com.richards.mealsapp.dto;
+package com.richards.mealsapp.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Table(name = "state_tbl")
-public class State extends BaseEntity {
+@Table(name = "item_tbl")
+public class CartItem extends BaseEntity {
 
 }
