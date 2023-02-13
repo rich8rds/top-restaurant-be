@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 import javax.persistence.*;
 
@@ -31,9 +32,9 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "address_id")
     private Address address;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "pickup_id")
-//    private PickupCenter pickupCenter;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "pickup_id")
+    private PickupCenter pickupCenter;
 
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)

@@ -6,9 +6,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @MappedSuperclass
-@Data
 @Getter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class BaseEntity {
@@ -28,13 +26,11 @@ public abstract class BaseEntity {
 
     @PrePersist
     public void createdAt(){
-
         this.createdAt = new Date();
     }
 
     @PreUpdate
     public void updatedAt(){
-
         this.updatedAt = new Date();
     }
 

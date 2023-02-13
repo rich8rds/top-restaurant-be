@@ -1,19 +1,33 @@
 package com.richards.mealsapp.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-@Table(name = "item_tbl")
+@Table(name = "cart_item_tbl")
 public class CartItem extends BaseEntity {
+    private String productName;
+    private String imageUrl;
+    private Integer orderedQty;
+    private BigDecimal unitPrice;
+    private BigDecimal subTotal;
+    @ManyToOne
+    @JoinColumn(name = "cart_id")
+    private Cart cart;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "order_id")
+    private Order order;
+    @OneToOne
+    @JoinColumn(name = "product_id", referencedColumnName = "id")
+    private Product product;
+
 
 }

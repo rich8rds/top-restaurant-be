@@ -1,19 +1,17 @@
 package com.richards.mealsapp.entity;
 
 import com.richards.mealsapp.enums.Gender;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
+import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
 @Entity
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Table(name = "person_tbl")
 public class Person extends BaseEntity {
     @Column(nullable = false, length = 101)
@@ -37,7 +35,8 @@ public class Person extends BaseEntity {
 
     private String address;
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
-    private Customer customer;
+//    @JsonIgnore
+//    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+//    @JoinColumn(name = "customer_id")
+//    private Customer customer;
 }

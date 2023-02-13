@@ -1,10 +1,8 @@
 package com.richards.mealsapp.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
+import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -12,13 +10,14 @@ import java.util.Set;
 
 @Entity
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Table(name = "customer_tbl")
 public class Customer extends BaseEntity {
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "customer", name = "person_id")
+    @JoinColumn(referencedColumnName = "id", name = "person_id")
     private Person person;
 
     @OneToOne(cascade = CascadeType.ALL)
