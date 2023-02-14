@@ -1,8 +1,8 @@
 package com.richards.mealsapp.entity;
 
 import com.richards.mealsapp.enums.Gender;
+import com.richards.mealsapp.enums.UserRole;
 import lombok.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
@@ -26,6 +26,8 @@ public class Person extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
+
+    private UserRole role;
 
     private String phone;
 
