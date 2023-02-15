@@ -1,5 +1,7 @@
 package com.richards.mealsapp.exceptions;
 
+import com.richards.mealsapp.enums.ResponseCodeEnum;
+import com.richards.mealsapp.response.BaseResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,114 +16,108 @@ import java.util.Objects;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(InputMismatchException.class)
-    public ResponseEntity<ErrorResponse> userAlreadyExists(InputMismatchException ne) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("User with provided Id already exist");
-        errorResponse.setStatus(HttpStatus.CONFLICT);
+    public ResponseEntity<BaseResponse<String>> userAlreadyExists(InputMismatchException ne) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ne.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.ID_ALREADY_EXISTS.getCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> userNotFound(UserNotFoundException ne) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("User not found");
-        errorResponse.setStatus(HttpStatus.NOT_FOUND);
+    public ResponseEntity<BaseResponse<String>> userNotFound(UserNotFoundException ne) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ne.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.USER_NOT_FOUND.getCode());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> alreadyExist(AlreadyExistsException ne) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("Already exists");
-        errorResponse.setStatus(HttpStatus.CONFLICT);
+    public ResponseEntity<BaseResponse<String>> alreadyExist(AlreadyExistsException ne) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ne.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.ERROR_DUPLICATE_USER.getCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> resourceNotFound(ResourceNotFoundException ne) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("Request not found");
-        errorResponse.setStatus(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<BaseResponse<String>> resourceNotFound(ResourceNotFoundException ne) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ne.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.RESOURCE_NOT_FOUND.getCode());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ErrorResponse> productNotFound(ProductNotFoundException ne) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("Product not found");
-        errorResponse.setStatus(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<BaseResponse<String>> productNotFound(ProductNotFoundException ne) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ne.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.PRODUCT_NOT_FOUND.getCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
     }
 
     @ExceptionHandler(PickupCenterNotFoundException.class)
-    public ResponseEntity<ErrorResponse> pickupCenterNotFound(PickupCenterNotFoundException ne){
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("Pickup center not found");
-        errorResponse.setStatus(HttpStatus.NOT_FOUND);
+    public ResponseEntity<BaseResponse<String>> pickupCenterNotFound(PickupCenterNotFoundException ne){
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ne.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.PRODUCT_NOT_FOUND.getCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({UnauthorizedUserException.class})
-    public ResponseEntity<ErrorResponse> handleUnauthorizedUserException(UnauthorizedUserException ex) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .message(ex.getMessage())
-                .debugMessage("User does not have the right access")
-                .status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<BaseResponse<String>> handleUnauthorizedUserException(UnauthorizedUserException ex) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ex.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.PRODUCT_NOT_FOUND.getCode());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> invalidProductAttributes(MethodArgumentNotValidException ie) {
-        ErrorResponse errorResponse = new ErrorResponse();
+    public ResponseEntity<BaseResponse<String>> invalidProductAttributes(MethodArgumentNotValidException ex) {
+        String errorMessage = Objects.requireNonNull(ex.getFieldError()).getDefaultMessage();
 
-        String errorMessage = Objects.requireNonNull(ie.getFieldError()).getDefaultMessage();
-        errorResponse.setMessage(errorMessage);
-        errorResponse.setDebugMessage("Invalid Input Filled in Field");
-        errorResponse.setStatus(HttpStatus.NOT_FOUND);
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(errorMessage);
+        errorResponse.setCode(ResponseCodeEnum.ERROR_EMAIL_INVALID.getCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
 
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponse> userAlreadyExists(UsernameNotFoundException ne) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage(ne.getLocalizedMessage());
-        errorResponse.setStatus(HttpStatus.NOT_FOUND);
+    public ResponseEntity<BaseResponse<String>> userAlreadyExists(UsernameNotFoundException ex) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ex.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.ID_ALREADY_EXISTS.getCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> notAvailable(UnauthorizedException ne){
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ne.getMessage());
-        errorResponse.setDebugMessage("Not Available");
-        errorResponse.setStatus(HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<BaseResponse<String>> notAvailable(UnauthorizedException ex){
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ex.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.UNAUTHORISED_ACCESS.getCode());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> illegalArgumentException(IllegalArgumentException ex) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ex.getMessage());
-        errorResponse.setDebugMessage(ex.getLocalizedMessage());
-        errorResponse.setStatus(HttpStatus.NOT_FOUND);
+    public ResponseEntity<BaseResponse<String>> illegalArgumentException(IllegalArgumentException ex) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ex.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.ERROR.getCode());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(PasswordMisMatchException.class)
-    public ResponseEntity<ErrorResponse> passwordMismatchException(PasswordMisMatchException ex) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage(ex.getMessage());
-        errorResponse.setDebugMessage("Invalid password");
-        errorResponse.setStatus(HttpStatus.CONFLICT);
+    public ResponseEntity<BaseResponse<String>> passwordMismatchException(PasswordMisMatchException ex) {
+        BaseResponse<String> errorResponse = new BaseResponse<>();
+        errorResponse.setDescription(ex.getMessage());
+        errorResponse.setCode(ResponseCodeEnum.ERROR_PASSWORD_MISMATCH.getCode());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 }
