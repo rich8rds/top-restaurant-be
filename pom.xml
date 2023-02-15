@@ -75,6 +75,18 @@
             <artifactId>guava</artifactId>
             <version>30.0-jre</version>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.3</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
@@ -106,6 +118,7 @@
                         <artifactId>junit-jupiter-engine</artifactId>
                         <version>5.0.3</version>
                     </dependency>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-site-plugin -->
                 </dependencies>
             </plugin>
 
