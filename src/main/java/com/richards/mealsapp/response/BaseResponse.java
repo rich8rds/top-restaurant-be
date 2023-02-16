@@ -29,15 +29,15 @@ public class BaseResponse<T> {
     }
 
 
-    public void assignResponseCodeAndDescription(int code, String description, T payload) {
+    public BaseResponse(int code, String description, T payload) {
         this.code = code;
         this.description = description;
         this.payload = payload;
     }
 
-    public BaseResponse(ResponseCodeEnum responseCode, String description, T payload) {
+    public BaseResponse(ResponseCodeEnum responseCode, T payload) {
         this.code = responseCode.getCode();
-        this.description = description;
+        this.description = responseCode.getDescription();
         this.payload  = payload;
     }
 }

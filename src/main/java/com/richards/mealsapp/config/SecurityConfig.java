@@ -5,6 +5,7 @@ import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 import java.util.Collection;
 
@@ -29,7 +31,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    private final String[] WHITE_LISTED_URLS = { "/", "/home", "index", "/css/*", "/js/*", "/api/v1/products/**",
+    private final String[] WHITE_LISTED_URLS = { "/", "index", "/css/*", "/js/*", "/api/v1/products/**", "/checkuser",
             "/api/v1/pickup/**", "/api/v1/auth/**","/v2/api-docs/**", "/v3/api-docs/**",
             "/configuration/**", "/swagger*/**","/swagger-ui/**","/webjars/**", "/swagger-ui.html", "/api/v1/category/**",
             "/api/v1/subcategory/**", "/api/v1/state/**", "/api/v1/products/new-arrivals", "/api/v1/products/best-selling"
@@ -50,6 +52,7 @@ public class SecurityConfig {
                             .antMatchers(WHITE_LISTED_URLS).permitAll()
                             .anyRequest().authenticated();
                 })
+                .oauth2Login().and()
                 .oauth2ResourceServer(oauth2ResourceServer ->
                         oauth2ResourceServer
                                 .jwt(jwt -> jwt.
