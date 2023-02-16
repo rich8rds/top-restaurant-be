@@ -1,6 +1,6 @@
 package com.richards.mealsapp.dto;
 
-import com.decagon.OakLandv1be.enums.Gender;
+import com.richards.mealsapp.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
