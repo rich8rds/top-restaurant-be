@@ -38,23 +38,6 @@ public class JavaMailServiceImpl implements JavaMailService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MealsAppApplication.class);
     private static final Marker IMPORTANT = MarkerFactory.getMarker("IMPORTANT");
 
-    @Bean
-    public JavaMailSender getJavaMailSender() {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
-        mailSender.setUsername("funitureoakland@gmail.com");
-        mailSender.setPassword("qmthrwjtswvdmaqw");
-
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
-
-        return mailSender;
-    }
-
     @Override
     public ResponseEntity<BaseResponse<String>> sendMailAlt(String receiverEmail, String subject, String text) {
 

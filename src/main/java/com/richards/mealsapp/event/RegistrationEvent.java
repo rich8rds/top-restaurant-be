@@ -10,7 +10,6 @@ import org.springframework.context.event.ApplicationContextEvent;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
 public class RegistrationEvent extends ApplicationEvent {
     private Person person;
     private String applicatiionUrl;
