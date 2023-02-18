@@ -34,25 +34,30 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("login")
-    public ResponseEntity<BaseResponse<String>> authenticate(@Valid @RequestBody LoginDto loginRequest) {
+    public BaseResponse<String> authenticate(@Valid @RequestBody LoginDto loginRequest) {
         return authService.authenticateUser(loginRequest);
     }
 
     @PostMapping("signup")
-    public ResponseEntity<BaseResponse<String>> signup(@Valid @RequestBody SignupRequestDto signupRequestDto) {
-        ResponseEntity<BaseResponse<String>> response = authService.registerUser(signupRequestDto);
+    public BaseResponse<String> signup(@Valid @RequestBody SignupRequestDto signupRequestDto) {
+        BaseResponse<String> response = authService.registerUser(signupRequestDto);
         return response;
 //        return new ResponseEntity<>("Registration Successful! Check your mail for activation link"),HttpStatus.CREATED);
     }
 
     @GetMapping("verifyRegistration")
-    public ResponseEntity<BaseResponse<String>> verifyAccount(@RequestParam("token") String token){
+    public BaseResponse<String> verifyAccount(@RequestParam("token") String token){
         return authService.verifyUserVerificationToken(token);
     }
 
     @GetMapping("resendVerificationToken")
-    public ResponseEntity<BaseResponse<String>> resendVerificationToken(@RequestParam("email") String email) {
-        return authService.resendVerificationToken(email);
+    public BaseResponse<String> resendVerificationToken(@RequestParam("token") String token) {
+        return authService.resendVerificationToken(token);
+    }
+
+    @PostMapping("changePassword")
+    public BaseResponse<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto) {
+        return authService.changePassword(passwordChangeDto);
     }
 
 

@@ -7,11 +7,11 @@ import org.springframework.http.ResponseEntity;
 
 public interface AuthService {
 
-    ResponseEntity<BaseResponse<String>> authenticateUser(LoginDto loginRequest);
+    BaseResponse<String> authenticateUser(LoginDto loginRequest);
 
-    ResponseEntity<BaseResponse<String>> registerUser(SignupRequestDto signupRequestDto);
+    BaseResponse<String> registerUser(SignupRequestDto signupRequestDto);
 
-    ResponseEntity<BaseResponse<String>> verifyUserVerificationToken(String token);
+    BaseResponse<String> verifyUserVerificationToken(String token);
 
-    ResponseEntity<BaseResponse<String>> resendVerificationToken(String email);
+    BaseResponse<String> resendVerificationToken(String email);
 }

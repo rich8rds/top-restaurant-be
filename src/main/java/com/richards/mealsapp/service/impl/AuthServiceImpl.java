@@ -4,10 +4,18 @@ import com.richards.mealsapp.config.jwt.TokenGeneratorService;
 import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
 import com.richards.mealsapp.dto.LoginDto;
 import com.richards.mealsapp.dto.SignupRequestDto;
+import com.richards.mealsapp.entity.Customer;
 import com.richards.mealsapp.entity.Person;
+import com.richards.mealsapp.entity.Token;
+import com.richards.mealsapp.enums.Gender;
 import com.richards.mealsapp.enums.ResponseCodeEnum;
+import com.richards.mealsapp.enums.UserRole;
 import com.richards.mealsapp.event.RegistrationEvent;
+import com.richards.mealsapp.exceptions.AlreadyExistsException;
+import com.richards.mealsapp.exceptions.ResourceNotFoundException;
+import com.richards.mealsapp.repository.CustomerRepository;
 import com.richards.mealsapp.repository.PersonRepository;
+import com.richards.mealsapp.repository.TokenRepository;
 import com.richards.mealsapp.response.BaseResponse;
 import com.richards.mealsapp.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +29,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +43,13 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final TokenGeneratorService tokenService;
     private final PersonRepository personRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final HttpServletRequest request;
+    private final CustomerRepository customerRepository;
+    private TokenRepository tokenRepository;
 
     @Override
-    public ResponseEntity<BaseResponse<String>> authenticateUser(LoginDto loginRequest) {
+    public BaseResponse<String> authenticateUser(LoginDto loginRequest) {
         try {
             UserDetails user = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
@@ -43,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
             if (!user.isAccountNonLocked()){
                 BaseResponse<String> response =
                         new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, "This account has been deactivated");
-                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+                return response;
             }
 
             Authentication authentication = authenticationManager.authenticate(
@@ -55,35 +71,81 @@ public class AuthServiceImpl implements AuthService {
             BaseResponse<String> response = new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
                             "Login Successful",
                             tokenService.generateToken(authentication));
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return response;
 
         } catch (InvalidCredentialsException e) {
-            return new ResponseEntity<>(new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS,
-                    "Password or Email not correct"),
-                    HttpStatus.UNAUTHORIZED);
+            return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS,
+                    "Password or Email not correct");
 
         } catch (BadCredentialsException | UsernameNotFoundException e) {
-            return new ResponseEntity<>(new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
+            return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
                     "Login Successful",
-                    "Password or Email not correct"),
-                    HttpStatus.UNAUTHORIZED);
+                    "Password or Email not correct");
         }
     }
 
     @Override
-    public ResponseEntity<BaseResponse<String>> registerUser(SignupRequestDto signupRequestDto) {
-        Person person = personRepository.save(new Person());
-        publisher.publishEvent(new RegistrationEvent(person, "url"));
-        return null;
+    public BaseResponse<String> registerUser(SignupRequestDto signupRequestDto) {
+        boolean emailExists = personRepository.existsByEmail(signupRequestDto.getEmail());
+        if (emailExists)
+            throw new AlreadyExistsException("User Already Exists!");
+
+        Person person = Person.builder()
+                .firstName(signupRequestDto.getFirstName())
+                .lastName(signupRequestDto.getLastName())
+                .email(signupRequestDto.getPassword())
+                .password(passwordEncoder.encode(signupRequestDto.getPassword()))
+                .role(UserRole.CUSTOMER)
+                .phone(signupRequestDto.getPhone())
+                .address(signupRequestDto.getAddress() != null ? signupRequestDto.getAddress() : "")
+                .gender(Gender.valueOf(signupRequestDto.getGender()))
+                .build();
+
+        Person savedPerson = personRepository.save(person);
+        Customer customer = Customer.builder().person(savedPerson).build();
+        customerRepository.save(customer);
+
+        new Thread(() -> publisher.publishEvent(new RegistrationEvent(savedPerson, getApplicationUrl()))).start();
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS);
     }
 
     @Override
-    public ResponseEntity<BaseResponse<String>> verifyUserVerificationToken(String token) {
-        return null;
+    public BaseResponse<String> verifyUserVerificationToken(String token) {
+        //Verify token
+        // Check if expired and delete
+        Token verificationToken = tokenRepository.findByToken(token).orElseThrow(
+                () -> new ResourceNotFoundException("Token Not Found"));
+
+        Long expirationTime = verificationToken.getExpirationTime();
+        long now = Instant.now().getEpochSecond();
+        if(now > expirationTime)
+            throw new BadCredentialsException("Token has expired. Try resending verification token to email");
+
+        Person person = personRepository.findById(verificationToken.getPerson().getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User with email does not exist"));
+
+        person.setIsEnabled(true);
+        personRepository.save(person);
+
+        tokenRepository.delete(verificationToken);
+
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Verification Token Sent!");
     }
 
     @Override
-    public ResponseEntity<BaseResponse<String>> resendVerificationToken(String email) {
-        return null;
+    public BaseResponse<String> resendVerificationToken(String token) {
+        Token verificationToken = tokenRepository.findByToken(token).orElseThrow(
+                () -> new ResourceNotFoundException("Token Not Found"));
+
+        Person person = personRepository.findById(verificationToken.getPerson().getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User with email does not exist"));
+
+        tokenRepository.delete(verificationToken);
+        new Thread(() -> publisher.publishEvent(new RegistrationEvent(person, getApplicationUrl()))).start();
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Resend Token Successful");
+    }
+
+    private String getApplicationUrl() {
+        return "http://" + request.getServerName() + ":3000";
     }
 }

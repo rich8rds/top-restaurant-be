@@ -14,6 +14,8 @@ import javax.persistence.*;
 public class Token extends BaseEntity {
     @Column(length = 500)
     private String token;
+    private Long startTime;
+    private Long expirationTime;
     @OneToOne
     @JoinColumn(name = "person_id")
     private Person person;

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import static com.richards.mealsapp.enums.UserAuthority.*;
 
 public enum UserRole {
-    STUDENT(Sets.newHashSet()),
+    CUSTOMER(Sets.newHashSet()),
     ADMIN(Sets.newHashSet(PRODUCT_READ, PRODUCT_WRITE, CUSTOMER_READ, CUSTOMER_WRITE)),
     ADMINTRAINEE(Sets.newHashSet(PRODUCT_READ, CUSTOMER_READ));
 
