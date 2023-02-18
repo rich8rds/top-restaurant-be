@@ -28,7 +28,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
     }
     @Bean
     public Docket appApi () {
-        return new Docket(DocumentationType.OAS_30)
+        return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .securityContexts(Collections.singletonList(securityContext()))
                 .securitySchemes(List.of(apiKey()))

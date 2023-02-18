@@ -215,7 +215,6 @@ public class AuthServiceImpl implements AuthService {
         String firstName = profileRequest.getFirstName();
         String lastName = profileRequest.getLastName();
         String requestEmail = profileRequest.getEmail();
-        Gender gender = Gender.valueOf(profileRequest.getGender());
         String phone = profileRequest.getPhone();
         String password = profileRequest.getPassword();
         String address = profileRequest.getAddress();
@@ -227,7 +226,12 @@ public class AuthServiceImpl implements AuthService {
                 person.setEmail(requestEmail);
         }
 
-        if(gender != null) person.setGender(gender);
+
+        if(profileRequest.getGender() != null) {
+            Gender gender = Gender.valueOf(profileRequest.getGender());
+            person.setGender(gender);
+        }
+
         if(phone != null) person.setPhone(phone);
         if(password != null) person.setPassword(password);
         if(address != null) person.setAddress(address);

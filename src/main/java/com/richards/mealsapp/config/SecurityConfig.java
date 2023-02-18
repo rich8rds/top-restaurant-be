@@ -2,11 +2,10 @@ package com.richards.mealsapp.config;
 
 import com.richards.mealsapp.config.jwt.JWTCoder;
 import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
-import com.richards.mealsapp.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -24,10 +23,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 import java.util.Collection;
 
+import static com.richards.mealsapp.enums.UserRole.*;
+
+@Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -51,7 +52,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth
                             .antMatchers(WHITE_LISTED_URLS).permitAll()
-                            .antMatchers("/api/v1/customer/**").hasRole(UserRole.CUSTOMER.name())
+                            .antMatchers("/api/v1/customer/**").hasRole(CUSTOMER.name())
                             .anyRequest().authenticated();
                 })
 //                .oauth2Login().and()

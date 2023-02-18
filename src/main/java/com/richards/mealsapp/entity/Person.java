@@ -28,6 +28,7 @@ public class Person extends BaseEntity {
     @Column(nullable = false)
     private Gender gender;
 
+    @Enumerated(EnumType.STRING)
     private UserRole role;
 
     private String phone;
