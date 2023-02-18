@@ -18,7 +18,7 @@ public class BaseResponse<T> {
         this.description = responseCode.getDescription();
     }
 
-    public void assignResponseCodeAndDescription(int code, String description) {
+    public BaseResponse(int code, String description) {
         this.code = code;
         this.description = description;
     }

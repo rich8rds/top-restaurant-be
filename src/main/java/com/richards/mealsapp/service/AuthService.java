@@ -1,17 +1,27 @@
 package com.richards.mealsapp.service;
 
-import com.richards.mealsapp.dto.LoginDto;
-import com.richards.mealsapp.dto.SignupRequestDto;
+import com.richards.mealsapp.dto.*;
 import com.richards.mealsapp.response.BaseResponse;
-import org.springframework.http.ResponseEntity;
+
+import javax.servlet.http.HttpServletRequest;
 
 public interface AuthService {
 
-    BaseResponse<String> authenticateUser(LoginDto loginRequest);
+    BaseResponse<String> authenticateUser(LoginRequest loginRequest);
 
-    BaseResponse<String> registerUser(SignupRequestDto signupRequestDto);
+    BaseResponse<String> registerUser(SignupRequest signupRequest, HttpServletRequest request);
 
     BaseResponse<String> verifyUserVerificationToken(String token);
 
-    BaseResponse<String> resendVerificationToken(String email);
+    BaseResponse<String> resendVerificationToken(String email, HttpServletRequest request);
+
+    BaseResponse<String> updatePassword(UpdatePasswordRequest updatePasswordRequest);
+
+    BaseResponse<String> getForgotPasswordToken(ForgotPasswordRequest forgotPasswordRequest, HttpServletRequest request);
+
+    BaseResponse<String> changePasswordWithToken(String token, ChangePasswordRequest changePasswordRequest);
+
+    BaseResponse<ProfileResponse> getUserProfile();
+
+    BaseResponse<ProfileResponse> updateUserProfile(ProfileRequest profileRequest);
 }

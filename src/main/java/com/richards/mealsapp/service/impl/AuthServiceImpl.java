@@ -2,27 +2,28 @@ package com.richards.mealsapp.service.impl;
 
 import com.richards.mealsapp.config.jwt.TokenGeneratorService;
 import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
-import com.richards.mealsapp.dto.LoginDto;
-import com.richards.mealsapp.dto.SignupRequestDto;
+import com.richards.mealsapp.dto.*;
 import com.richards.mealsapp.entity.Customer;
 import com.richards.mealsapp.entity.Person;
 import com.richards.mealsapp.entity.Token;
+import com.richards.mealsapp.enums.EventType;
 import com.richards.mealsapp.enums.Gender;
 import com.richards.mealsapp.enums.ResponseCodeEnum;
 import com.richards.mealsapp.enums.UserRole;
-import com.richards.mealsapp.event.RegistrationEvent;
+import com.richards.mealsapp.event.CompleteEvent;
+import com.richards.mealsapp.event.MealApplicationEvent;
 import com.richards.mealsapp.exceptions.AlreadyExistsException;
+import com.richards.mealsapp.exceptions.PasswordMisMatchException;
 import com.richards.mealsapp.exceptions.ResourceNotFoundException;
+import com.richards.mealsapp.mail.JavaMailService;
 import com.richards.mealsapp.repository.CustomerRepository;
 import com.richards.mealsapp.repository.PersonRepository;
 import com.richards.mealsapp.repository.TokenRepository;
 import com.richards.mealsapp.response.BaseResponse;
 import com.richards.mealsapp.service.AuthService;
+import com.richards.mealsapp.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.auth.InvalidCredentialsException;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,32 +36,30 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 
+import static com.richards.mealsapp.enums.EventType.*;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final ApplicationEventPublisher publisher;
+    private final JavaMailService javaMailService;
     private final AppUserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
     private final TokenGeneratorService tokenService;
     private final PersonRepository personRepository;
     private final PasswordEncoder passwordEncoder;
-    private final HttpServletRequest request;
     private final CustomerRepository customerRepository;
-    private TokenRepository tokenRepository;
+    private final TokenRepository tokenRepository;
 
     @Override
-    public BaseResponse<String> authenticateUser(LoginDto loginRequest) {
+    public BaseResponse<String> authenticateUser(LoginRequest loginRequest) {
         try {
             UserDetails user = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
             if(!user.isEnabled())
                 throw new UsernameNotFoundException("You have not been verified. Check your email to be verified!");
 
-            if (!user.isAccountNonLocked()){
-                BaseResponse<String> response =
-                        new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, "This account has been deactivated");
-                return response;
-            }
+            if (!user.isAccountNonLocked())
+                return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, "This account has been deactivated");
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -68,10 +67,9 @@ public class AuthServiceImpl implements AuthService {
             if(authentication == null)
                 throw new InvalidCredentialsException("Invalid Email or Password");
 
-            BaseResponse<String> response = new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
+            return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
                             "Login Successful",
                             tokenService.generateToken(authentication));
-            return response;
 
         } catch (InvalidCredentialsException e) {
             return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS,
@@ -85,42 +83,36 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public BaseResponse<String> registerUser(SignupRequestDto signupRequestDto) {
-        boolean emailExists = personRepository.existsByEmail(signupRequestDto.getEmail());
-        if (emailExists)
+    public BaseResponse<String> registerUser(SignupRequest signupRequest, HttpServletRequest request) {
+        boolean emailExists = personRepository.existsByEmail(signupRequest.getEmail());
+        if (emailExists) {
+            System.out.println("EMAIL EXISTS");
             throw new AlreadyExistsException("User Already Exists!");
+        }
 
         Person person = Person.builder()
-                .firstName(signupRequestDto.getFirstName())
-                .lastName(signupRequestDto.getLastName())
-                .email(signupRequestDto.getPassword())
-                .password(passwordEncoder.encode(signupRequestDto.getPassword()))
+                .firstName(signupRequest.getFirstName())
+                .lastName(signupRequest.getLastName())
+                .email(signupRequest.getEmail())
+                .password(passwordEncoder.encode(signupRequest.getPassword()))
                 .role(UserRole.CUSTOMER)
-                .phone(signupRequestDto.getPhone())
-                .address(signupRequestDto.getAddress() != null ? signupRequestDto.getAddress() : "")
-                .gender(Gender.valueOf(signupRequestDto.getGender()))
+                .phone(signupRequest.getPhone())
+                .address(signupRequest.getAddress() != null ? signupRequest.getAddress() : "")
+                .gender(Gender.valueOf(signupRequest.getGender()))
                 .build();
 
         Person savedPerson = personRepository.save(person);
         Customer customer = Customer.builder().person(savedPerson).build();
         customerRepository.save(customer);
 
-        new Thread(() -> publisher.publishEvent(new RegistrationEvent(savedPerson, getApplicationUrl()))).start();
-        return new BaseResponse<>(ResponseCodeEnum.SUCCESS);
+        completeEvent(savedPerson, REGISTRATION, request);
+
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Check your email to get verified");
     }
 
     @Override
     public BaseResponse<String> verifyUserVerificationToken(String token) {
-        //Verify token
-        // Check if expired and delete
-        Token verificationToken = tokenRepository.findByToken(token).orElseThrow(
-                () -> new ResourceNotFoundException("Token Not Found"));
-
-        Long expirationTime = verificationToken.getExpirationTime();
-        long now = Instant.now().getEpochSecond();
-        if(now > expirationTime)
-            throw new BadCredentialsException("Token has expired. Try resending verification token to email");
-
+        Token verificationToken = getToken(token);
         Person person = personRepository.findById(verificationToken.getPerson().getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User with email does not exist"));
 
@@ -133,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public BaseResponse<String> resendVerificationToken(String token) {
+    public BaseResponse<String> resendVerificationToken(String token, HttpServletRequest request) {
         Token verificationToken = tokenRepository.findByToken(token).orElseThrow(
                 () -> new ResourceNotFoundException("Token Not Found"));
 
@@ -141,11 +133,142 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User with email does not exist"));
 
         tokenRepository.delete(verificationToken);
-        new Thread(() -> publisher.publishEvent(new RegistrationEvent(person, getApplicationUrl()))).start();
+        completeEvent(person, REGISTRATION, request);
         return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Resend Token Successful");
     }
 
-    private String getApplicationUrl() {
-        return "http://" + request.getServerName() + ":3000";
+    @Override
+    public BaseResponse<String> updatePassword(UpdatePasswordRequest updatePassword) {
+        String email = UserUtil.extractEmailFromPrincipal()
+                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        String oldPassword = updatePassword.getOldPassword();
+        String newPassword = updatePassword.getNewPassword();
+        String confirmNewPassword = updatePassword.getConfirmNewPassword();
+
+        Person person = personRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        String dbPassword = person.getPassword();
+        if (!passwordEncoder.matches(oldPassword, dbPassword))
+            throw new PasswordMisMatchException("Passwords do not match!");
+        if(!confirmNewPassword.equals(newPassword))
+            updatePassword.setConfirmNewPassword(newPassword);
+
+        person.setPassword(passwordEncoder.encode(newPassword));
+        personRepository.save(person);
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(), "Password Successfully Changed");
+
+    }
+
+    @Override
+    public BaseResponse<String> getForgotPasswordToken(ForgotPasswordRequest forgotPasswordRequest, HttpServletRequest request) {
+        Person person = personRepository.findByEmail(forgotPasswordRequest.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        completeEvent(person, FORGOTPASSWORD, request);
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(), "Token Sent. Check your email to verify.");
+    }
+
+    @Override
+    public BaseResponse<String> changePasswordWithToken(String token, ChangePasswordRequest changePasswordRequest) {
+        Token verificationToken = getToken(token);
+
+        Person person = personRepository.findById(verificationToken.getPerson().getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User with email does not exist"));
+
+        String newPassword = changePasswordRequest.getNewPassword();
+        person.setPassword(passwordEncoder.encode(newPassword));
+        personRepository.save(person);
+        tokenRepository.delete(verificationToken);
+
+
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Verification Token Sent!");
+    }
+
+    @Override
+    public BaseResponse<ProfileResponse> getUserProfile() {
+        String email = UserUtil.extractEmailFromPrincipal()
+            .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        Person person = personRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        ProfileResponse profileResponse = ProfileResponse.builder()
+                .firstName(person.getFirstName())
+                .lastName(person.getLastName())
+                .email(person.getEmail())
+                .phone(person.getPhone())
+                .gender(person.getGender().toString())
+                .address(person.getAddress())
+                .build();
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, profileResponse);
+    }
+
+    @Override
+    public BaseResponse<ProfileResponse> updateUserProfile(ProfileRequest profileRequest) {
+        String email = UserUtil.extractEmailFromPrincipal()
+                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        Person person = personRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+
+        String firstName = profileRequest.getFirstName();
+        String lastName = profileRequest.getLastName();
+        String requestEmail = profileRequest.getEmail();
+        Gender gender = Gender.valueOf(profileRequest.getGender());
+        String phone = profileRequest.getPhone();
+        String password = profileRequest.getPassword();
+        String address = profileRequest.getAddress();
+
+        if(firstName != null) person.setFirstName(firstName);
+        if(lastName != null) person.setLastName(lastName);
+        if(requestEmail != null) {
+            if(!personRepository.existsByEmail(requestEmail))
+                person.setEmail(requestEmail);
+        }
+
+        if(gender != null) person.setGender(gender);
+        if(phone != null) person.setPhone(phone);
+        if(password != null) person.setPassword(password);
+        if(address != null) person.setAddress(address);
+
+        Person savedPerson = personRepository.save(person);
+        ProfileResponse profileResponse = ProfileResponse.builder()
+                .firstName(savedPerson.getFirstName())
+                .lastName(savedPerson.getLastName())
+                .email(savedPerson.getEmail())
+                .phone(savedPerson.getPhone())
+                .gender(savedPerson.getGender().toString())
+                .address(savedPerson.getAddress())
+                .build();
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
+                "Profile successfully updated",
+                profileResponse);
+    }
+
+
+    private Token getToken(String token) {
+        Token verificationToken = tokenRepository.findByToken(token).orElseThrow(
+                () -> new ResourceNotFoundException("Token Not Found"));
+
+        Long expirationTime = verificationToken.getExpirationTime();
+        long now = Instant.now().getEpochSecond();
+        if(now > expirationTime)
+            throw new BadCredentialsException("Token has expired. Try resending verification token to email");
+
+        return verificationToken;
+    }
+    private String getApplicationUrl(HttpServletRequest request) {
+//        return "http://" + request.getServerName() + ":3000";
+        return "http://" + request.getServerName() + ":8080/api/vi/auth/";
+    }
+
+    private void completeEvent(Person savedPerson, EventType eventType, HttpServletRequest request) {
+        new Thread(() -> {
+            MealApplicationEvent mealApplicationEvent = new MealApplicationEvent(savedPerson, getApplicationUrl(request), eventType);
+            CompleteEvent completeEvent = new CompleteEvent(javaMailService, tokenRepository);
+            completeEvent.onApplicationEvent(mealApplicationEvent);
+        }).start();
     }
 }

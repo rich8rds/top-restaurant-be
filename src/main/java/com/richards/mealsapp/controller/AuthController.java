@@ -1,31 +1,13 @@
 package com.richards.mealsapp.controller;
 
-import com.richards.mealsapp.config.jwt.TokenGeneratorService;
-import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
-import com.richards.mealsapp.dto.LoginDto;
-import com.richards.mealsapp.dto.SignupRequestDto;
-import com.richards.mealsapp.enums.ResponseCodeEnum;
-import com.richards.mealsapp.event.RegistrationEvent;
+import com.richards.mealsapp.dto.*;
 import com.richards.mealsapp.response.BaseResponse;
 import com.richards.mealsapp.service.AuthService;
-import com.richards.mealsapp.service.PersonService;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.auth.InvalidCredentialsException;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.token.TokenService;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,15 +16,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("login")
-    public BaseResponse<String> authenticate(@Valid @RequestBody LoginDto loginRequest) {
+    public BaseResponse<String> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         return authService.authenticateUser(loginRequest);
     }
 
     @PostMapping("signup")
-    public BaseResponse<String> signup(@Valid @RequestBody SignupRequestDto signupRequestDto) {
-        BaseResponse<String> response = authService.registerUser(signupRequestDto);
-        return response;
-//        return new ResponseEntity<>("Registration Successful! Check your mail for activation link"),HttpStatus.CREATED);
+    public BaseResponse<String> signup(@Valid @RequestBody SignupRequest signupRequest, HttpServletRequest request) {
+        return authService.registerUser(signupRequest, request);
     }
 
     @GetMapping("verifyRegistration")
@@ -51,14 +31,35 @@ public class AuthController {
     }
 
     @GetMapping("resendVerificationToken")
-    public BaseResponse<String> resendVerificationToken(@RequestParam("token") String token) {
-        return authService.resendVerificationToken(token);
+    public BaseResponse<String> resendVerificationToken(@RequestParam("token") String token, HttpServletRequest request) {
+        return authService.resendVerificationToken(token, request);
     }
 
-    @PostMapping("changePassword")
-    public BaseResponse<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto) {
-        return authService.changePassword(passwordChangeDto);
+    @PostMapping("updatePassword")
+    public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
+        return authService.updatePassword(updatePasswordRequest);
     }
 
+    @PostMapping("forgotPassword")
+    public BaseResponse<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest, HttpServletRequest request) {
+        return authService.getForgotPasswordToken(forgotPasswordRequest, request);
+    }
 
+    @GetMapping("changePassword")
+    public BaseResponse<String> resetPassword(@RequestParam("token") String token,
+                                              @Valid @RequestBody
+                                              ChangePasswordRequest changePasswordRequest) {
+        return authService.changePasswordWithToken(token, changePasswordRequest);
+    }
+
+    @PostMapping("changeProfile")
+    public BaseResponse<ProfileResponse> updateProfile(@RequestBody ProfileRequest profileRequest) {
+       return authService.updateUserProfile(profileRequest);
+    }
+
+    @GetMapping("viewProfile")
+    public BaseResponse<ProfileResponse> getProfileDetails() {
+        return authService.getUserProfile();
+
+    }
 }

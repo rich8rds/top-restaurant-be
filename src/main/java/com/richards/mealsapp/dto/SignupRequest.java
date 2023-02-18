@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignupRequestDto {
+public class SignupRequest {
     @NotBlank(message = "First name is mandatory")
     private String firstName;
 
