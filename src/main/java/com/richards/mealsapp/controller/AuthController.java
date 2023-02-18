@@ -11,53 +11,53 @@ import javax.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/auth/")
+@RequestMapping("/api/v1/")
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("login")
+    @PostMapping("auth/login")
     public BaseResponse<String> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         return authService.authenticateUser(loginRequest);
     }
 
-    @PostMapping("signup")
+    @PostMapping("auth/signup")
     public BaseResponse<String> signup(@Valid @RequestBody SignupRequest signupRequest, HttpServletRequest request) {
         return authService.registerUser(signupRequest, request);
     }
 
-    @GetMapping("verifyRegistration")
-    public BaseResponse<String> verifyAccount(@RequestParam("token") String token){
+    @GetMapping("auth/verifyRegistration")
+    public BaseResponse<String> verifyAccount(@RequestParam String token){
         return authService.verifyUserVerificationToken(token);
     }
 
-    @GetMapping("resendVerificationToken")
-    public BaseResponse<String> resendVerificationToken(@RequestParam("token") String token, HttpServletRequest request) {
+    @GetMapping("auth/resendVerificationToken")
+    public BaseResponse<String> resendVerificationToken(@RequestParam String token, HttpServletRequest request) {
         return authService.resendVerificationToken(token, request);
     }
 
-    @PostMapping("updatePassword")
+    @PostMapping("auth/updatePassword")
     public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
         return authService.updatePassword(updatePasswordRequest);
     }
 
-    @PostMapping("forgotPassword")
+    @PostMapping("auth/forgotPassword")
     public BaseResponse<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest, HttpServletRequest request) {
         return authService.getForgotPasswordToken(forgotPasswordRequest, request);
     }
 
-    @GetMapping("changePassword")
-    public BaseResponse<String> resetPassword(@RequestParam("token") String token,
+    @GetMapping("auth/changePassword")
+    public BaseResponse<String> resetPassword(@RequestParam String token,
                                               @Valid @RequestBody
                                               ChangePasswordRequest changePasswordRequest) {
         return authService.changePasswordWithToken(token, changePasswordRequest);
     }
 
-    @PostMapping("changeProfile")
+    @PostMapping("customer/changeProfile")
     public BaseResponse<ProfileResponse> updateProfile(@RequestBody ProfileRequest profileRequest) {
        return authService.updateUserProfile(profileRequest);
     }
 
-    @GetMapping("viewProfile")
+    @GetMapping("customer/viewProfile")
     public BaseResponse<ProfileResponse> getProfileDetails() {
         return authService.getUserProfile();
 

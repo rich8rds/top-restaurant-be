@@ -1,5 +1,6 @@
 package com.richards.mealsapp.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,10 +13,12 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Optional;
 
+@Slf4j
 public class UserUtil {
     @Bean
     public static Optional<String> extractEmailFromPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("AUTHENTICATION: {}", authentication);
         if (!(authentication instanceof AnonymousAuthenticationToken))
             return Optional.of(authentication.getName());
         return Optional.empty();

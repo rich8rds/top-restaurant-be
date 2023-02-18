@@ -56,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
             UserDetails user = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
             if(!user.isEnabled())
-                throw new UsernameNotFoundException("You have not been verified. Check your email to be verified!");
+                return new BaseResponse<>(ResponseCodeEnum.ERROR, "You have not been verified. Check your email to be verified!");
 
             if (!user.isAccountNonLocked())
                 return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, "This account has been deactivated");
@@ -72,12 +72,9 @@ public class AuthServiceImpl implements AuthService {
                             tokenService.generateToken(authentication));
 
         } catch (InvalidCredentialsException e) {
-            return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS,
-                    "Password or Email not correct");
-
+            return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, e.getMessage());
         } catch (BadCredentialsException | UsernameNotFoundException e) {
-            return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
-                    "Login Successful",
+            return new BaseResponse<>(ResponseCodeEnum.ERROR.getCode(), "Login Failed",
                     "Password or Email not correct");
         }
     }
@@ -97,6 +94,8 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(signupRequest.getPassword()))
                 .role(UserRole.CUSTOMER)
                 .phone(signupRequest.getPhone())
+                .isAccountLocked(true)
+                .isEnabled(false)
                 .address(signupRequest.getAddress() != null ? signupRequest.getAddress() : "")
                 .gender(Gender.valueOf(signupRequest.getGender()))
                 .build();
@@ -121,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
 
         tokenRepository.delete(verificationToken);
 
-        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Verification Token Sent!");
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Email Verified!");
     }
 
     @Override
@@ -167,7 +166,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
 
         completeEvent(person, FORGOTPASSWORD, request);
-        return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(), "Token Sent. Check your email to verify.");
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(), "Check your email to change password.");
     }
 
     @Override
@@ -192,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
             .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
 
         Person person = personRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User Does Not Exist"));
+                .orElseThrow(() -> new UsernameNotFoundException("User With Email Does Not Exist"));
 
         ProfileResponse profileResponse = ProfileResponse.builder()
                 .firstName(person.getFirstName())
@@ -261,7 +260,7 @@ public class AuthServiceImpl implements AuthService {
     }
     private String getApplicationUrl(HttpServletRequest request) {
 //        return "http://" + request.getServerName() + ":3000";
-        return "http://" + request.getServerName() + ":8080/api/vi/auth/";
+        return "http://" + request.getServerName() + ":" + request.getServerPort() + "/api/v1/auth/";
     }
 
     private void completeEvent(Person savedPerson, EventType eventType, HttpServletRequest request) {

@@ -43,7 +43,7 @@ public class CompleteEvent {
                             "<br><a href=[[TOKEN_URL]]>CLICK TO VERIFY </a><p>" +
                             "</body> " +
                             "</html>";
-            url = event.getApplicationUrl() + "/verifyRegistration?token=" + token;
+            url = event.getApplicationUrl() + "verifyRegistration?token=" + token;
         }
 
         else {
@@ -56,7 +56,7 @@ public class CompleteEvent {
                             "<br><a href=[[TOKEN_URL]]>CLICK TO CHANGE PASSWORD</a><p>" +
                             "</body> " +
                             "</html>";
-            url = event.getApplicationUrl() + "/changePassword?token=" + token;
+            url = event.getApplicationUrl() + "changePassword?token=" + token;
         }
 
         message = message.replace("[[TOKEN_URL]]", url);

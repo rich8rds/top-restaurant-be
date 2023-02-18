@@ -2,6 +2,7 @@ package com.richards.mealsapp.config;
 
 import com.richards.mealsapp.config.jwt.JWTCoder;
 import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
+import com.richards.mealsapp.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
@@ -50,9 +51,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth
                             .antMatchers(WHITE_LISTED_URLS).permitAll()
+                            .antMatchers("/api/v1/customer/**").hasRole(UserRole.CUSTOMER.name())
                             .anyRequest().authenticated();
                 })
-                .oauth2Login().and()
+//                .oauth2Login().and()
                 .oauth2ResourceServer(oauth2ResourceServer ->
                         oauth2ResourceServer
                                 .jwt(jwt -> jwt.
