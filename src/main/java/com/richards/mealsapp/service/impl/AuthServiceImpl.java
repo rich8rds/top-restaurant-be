@@ -52,7 +52,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public BaseResponse<String> authenticateUser(LoginRequest loginRequest) {
-        try {
             UserDetails user = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
             if(!user.isEnabled())
@@ -60,6 +59,11 @@ public class AuthServiceImpl implements AuthService {
 
             if (!user.isAccountNonLocked())
                 return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, "This account has been deactivated");
+            return authenticateUserWithAuthManager(loginRequest);
+    }
+
+    private BaseResponse<String> authenticateUserWithAuthManager(LoginRequest loginRequest) {
+        try {
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -68,8 +72,8 @@ public class AuthServiceImpl implements AuthService {
                 throw new InvalidCredentialsException("Invalid Email or Password");
 
             return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
-                            "Login Successful",
-                            tokenService.generateToken(authentication));
+                    "Login Successful",
+                    tokenService.generateToken(authentication));
 
         } catch (InvalidCredentialsException e) {
             return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, e.getMessage());
@@ -248,6 +252,25 @@ public class AuthServiceImpl implements AuthService {
         return new BaseResponse<>(ResponseCodeEnum.SUCCESS.getCode(),
                 "Profile successfully updated",
                 profileResponse);
+    }
+
+    @Override
+    public BaseResponse<String> socialLogin(SocialLoginRequest socialLoginRequest) {
+        if(!personRepository.existsByEmail(socialLoginRequest.getEmail())) {
+            String firstName = socialLoginRequest.getFirstName();
+            String lastName = socialLoginRequest.getLastName();
+            String email = socialLoginRequest.getEmail();
+
+            Person createUser = new Person();
+            createUser.setFirstName(firstName);
+            createUser.setLastName(lastName);
+            createUser.setEmail(email);
+            createUser.setPassword(passwordEncoder.encode("myNewLoginDetails"));
+            createUser.setIsEnabled(true);
+            personRepository.save(createUser);
+        }
+        LoginRequest loginRequest = new LoginRequest(socialLoginRequest.getEmail(), "myNewLoginDetails");
+        return authenticateUserWithAuthManager(loginRequest);
     }
 
 

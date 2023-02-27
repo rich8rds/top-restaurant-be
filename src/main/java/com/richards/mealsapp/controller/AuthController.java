@@ -62,4 +62,9 @@ public class AuthController {
         return authService.getUserProfile();
 
     }
+
+    @PostMapping("auth/social-login")
+    public BaseResponse<String> socialLogin(@Valid @RequestBody SocialLoginRequest socialLoginRequest) {
+        return authService.socialLogin(socialLoginRequest);
+    }
 }

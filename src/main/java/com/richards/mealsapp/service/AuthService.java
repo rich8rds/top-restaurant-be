@@ -24,4 +24,6 @@ public interface AuthService {
     BaseResponse<ProfileResponse> getUserProfile();
 
     BaseResponse<ProfileResponse> updateUserProfile(ProfileRequest profileRequest);
+
+    BaseResponse<String> socialLogin(SocialLoginRequest socialLoginRequest);
 }

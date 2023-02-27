@@ -28,7 +28,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
     }
     @Bean
     public Docket appApi () {
-        return new Docket(DocumentationType.SWAGGER_2)
+        return new Docket(DocumentationType.OAS_30)
                 .apiInfo(apiInfo())
                 .securityContexts(Collections.singletonList(securityContext()))
                 .securitySchemes(List.of(apiKey()))
@@ -38,7 +38,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 .build();
     }
     private ApiKey apiKey() {
-        return new ApiKey("Bearer", AUTHORIZATION_HEADER, "header");
+        return new ApiKey(AUTHORIZATION_HEADER, AUTHORIZATION_HEADER, "header");
     }
     private SecurityContext securityContext() {
         return SecurityContext.builder()
@@ -50,6 +50,6 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 = new AuthorizationScope("global", "accessEverything");
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
         authorizationScopes[0] = authorizationScope;
-        return List.of(new SecurityReference("Bearer", authorizationScopes));
+        return List.of(new SecurityReference("Authorization", authorizationScopes));
     }
 }
