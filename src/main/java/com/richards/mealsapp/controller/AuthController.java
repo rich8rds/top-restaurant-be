@@ -20,44 +20,44 @@ public class AuthController {
         return authService.authenticateUser(loginRequest);
     }
 
-    @PostMapping("auth/signup")
+    @PostMapping("auth/register")
     public BaseResponse<String> signup(@Valid @RequestBody SignupRequest signupRequest, HttpServletRequest request) {
         return authService.registerUser(signupRequest, request);
     }
 
-    @GetMapping("auth/verifyRegistration")
+    @GetMapping("auth/verify-registration")
     public BaseResponse<String> verifyAccount(@RequestParam String token){
         return authService.verifyUserVerificationToken(token);
     }
 
-    @GetMapping("auth/resendVerificationToken")
+    @GetMapping("auth/resend-verification-token")
     public BaseResponse<String> resendVerificationToken(@RequestParam String token, HttpServletRequest request) {
         return authService.resendVerificationToken(token, request);
     }
 
-    @PostMapping("auth/updatePassword")
+    @PostMapping("auth/update-password")
     public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
         return authService.updatePassword(updatePasswordRequest);
     }
 
-    @PostMapping("auth/forgotPassword")
+    @PostMapping("auth/forgot-password")
     public BaseResponse<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest, HttpServletRequest request) {
         return authService.getForgotPasswordToken(forgotPasswordRequest, request);
     }
 
-    @GetMapping("auth/changePassword")
+    @GetMapping("auth/change-password")
     public BaseResponse<String> resetPassword(@RequestParam String token,
                                               @Valid @RequestBody
                                               ChangePasswordRequest changePasswordRequest) {
         return authService.changePasswordWithToken(token, changePasswordRequest);
     }
 
-    @PostMapping("customer/changeProfile")
+    @PostMapping("customer/change-profile")
     public BaseResponse<ProfileResponse> updateProfile(@RequestBody ProfileRequest profileRequest) {
        return authService.updateUserProfile(profileRequest);
     }
 
-    @GetMapping("customer/viewProfile")
+    @GetMapping("customer/view-profile")
     public BaseResponse<ProfileResponse> getProfileDetails() {
         return authService.getUserProfile();
 

@@ -17,7 +17,7 @@ public class MealApplicationEvent extends ApplicationEvent {
         super(person);
 
         this.person = person;
-        this.applicationUrl = applicationUrl;
+        this.applicationUrl = "http://localhost:3000/auth/";
         this.eventType = eventType;
 
     }

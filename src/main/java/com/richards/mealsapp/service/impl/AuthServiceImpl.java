@@ -54,8 +54,9 @@ public class AuthServiceImpl implements AuthService {
     public BaseResponse<String> authenticateUser(LoginRequest loginRequest) {
             UserDetails user = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
-            if(!user.isEnabled())
+            if(!user.isEnabled()) {
                 return new BaseResponse<>(ResponseCodeEnum.ERROR, "You have not been verified. Check your email to be verified!");
+            }
 
             if (!user.isAccountNonLocked())
                 return new BaseResponse<>(ResponseCodeEnum.UNAUTHORISED_ACCESS, "This account has been deactivated");
@@ -101,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
                 .isAccountLocked(true)
                 .isEnabled(false)
                 .address(signupRequest.getAddress() != null ? signupRequest.getAddress() : "")
-                .gender(Gender.valueOf(signupRequest.getGender()))
+                .gender(Gender.valueOf(signupRequest.getGender() == null ? Gender.OTHER.name() : signupRequest.getGender()))
                 .build();
 
         Person savedPerson = personRepository.save(person);
@@ -122,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
         person.setIsEnabled(true);
         personRepository.save(person);
 
-        tokenRepository.delete(verificationToken);
+//        tokenRepository.delete(verificationToken);
 
         return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Email Verified!");
     }
