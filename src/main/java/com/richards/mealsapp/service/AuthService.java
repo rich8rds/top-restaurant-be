@@ -1,6 +1,7 @@
 package com.richards.mealsapp.service;
 
 import com.richards.mealsapp.dto.*;
+import com.richards.mealsapp.entity.Customer;
 import com.richards.mealsapp.response.BaseResponse;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,4 +27,5 @@ public interface AuthService {
     BaseResponse<ProfileResponse> updateUserProfile(ProfileRequest profileRequest);
 
     BaseResponse<String> socialLogin(SocialLoginRequest socialLoginRequest);
+    Customer registerAnonymousUser(String uuid);
 }

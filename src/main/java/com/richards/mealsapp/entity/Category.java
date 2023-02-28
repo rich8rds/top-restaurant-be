@@ -20,7 +20,4 @@ import java.util.Set;
 public class Category extends BaseEntity {
     private String name;
     private String imageUrl;
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL)
-    private Set<Subcategory> subcategories;
 }

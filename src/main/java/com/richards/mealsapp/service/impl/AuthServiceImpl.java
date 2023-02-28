@@ -3,6 +3,7 @@ package com.richards.mealsapp.service.impl;
 import com.richards.mealsapp.config.jwt.TokenGeneratorService;
 import com.richards.mealsapp.config.userdetails.AppUserDetailsService;
 import com.richards.mealsapp.dto.*;
+import com.richards.mealsapp.entity.Cart;
 import com.richards.mealsapp.entity.Customer;
 import com.richards.mealsapp.entity.Person;
 import com.richards.mealsapp.entity.Token;
@@ -16,13 +17,12 @@ import com.richards.mealsapp.exceptions.AlreadyExistsException;
 import com.richards.mealsapp.exceptions.PasswordMisMatchException;
 import com.richards.mealsapp.exceptions.ResourceNotFoundException;
 import com.richards.mealsapp.mail.JavaMailService;
-import com.richards.mealsapp.repository.CustomerRepository;
-import com.richards.mealsapp.repository.PersonRepository;
-import com.richards.mealsapp.repository.TokenRepository;
+import com.richards.mealsapp.repository.*;
 import com.richards.mealsapp.response.BaseResponse;
 import com.richards.mealsapp.service.AuthService;
 import com.richards.mealsapp.utils.UserUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -35,9 +35,11 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.Optional;
 
 import static com.richards.mealsapp.enums.EventType.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -49,6 +51,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CustomerRepository customerRepository;
     private final TokenRepository tokenRepository;
+    private final CartItemRepository cartItemRepository;
+    private final CartRepository cartRepository;
 
     @Override
     public BaseResponse<String> authenticateUser(LoginRequest loginRequest) {
@@ -106,8 +110,11 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         Person savedPerson = personRepository.save(person);
-        Customer customer = Customer.builder().person(savedPerson).build();
-        customerRepository.save(customer);
+        Cart cart = cartRepository.save(new Cart());
+        Customer customer = Customer.builder().person(savedPerson).cart(cart).build();
+        Customer savedCustomer = customerRepository.save(customer);
+        cart.setCustomer(savedCustomer);
+        cartRepository.save(cart);
 
         completeEvent(savedPerson, REGISTRATION, request);
 
@@ -297,5 +304,37 @@ public class AuthServiceImpl implements AuthService {
             CompleteEvent completeEvent = new CompleteEvent(javaMailService, tokenRepository);
             completeEvent.onApplicationEvent(mealApplicationEvent);
         }).start();
+    }
+
+    @Override
+    public Customer registerAnonymousUser(String uuid) {
+        log.info("REGISTERING ANONYMOUS USER");
+        Optional<Person> personDb = personRepository.findByEmail(uuid);
+        if (personDb.isPresent()) {
+            return personDb.get().getCustomer();
+        }
+
+        Person person = Person.builder()
+                .firstName("Anonymous")
+                .lastName("Guest")
+                .email(uuid)
+                .password(passwordEncoder.encode("anonymous_guest"))
+                .role(UserRole.GUEST)
+                .phone("0810000000")
+                .isAccountLocked(true)
+                .isEnabled(false)
+                .address("")
+                .gender(Gender.OTHER)
+                .build();
+
+        Person savedPerson = personRepository.save(person);
+        Cart cart = cartRepository.save(new Cart());
+        Customer customer = Customer.builder().person(savedPerson).cart(cart).build();
+        Customer savedCustomer = customerRepository.save(customer);
+        cart.setCustomer(savedCustomer);
+        cartRepository.save(cart);
+
+        return savedCustomer;
+
     }
 }

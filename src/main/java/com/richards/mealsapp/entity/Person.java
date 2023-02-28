@@ -1,5 +1,6 @@
 package com.richards.mealsapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.richards.mealsapp.enums.Gender;
 import com.richards.mealsapp.enums.UserRole;
 import lombok.*;
@@ -39,8 +40,8 @@ public class Person extends BaseEntity {
 
     private String address;
 
-//    @JsonIgnore
-//    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
-//    @JoinColumn(name = "customer_id")
-//    private Customer customer;
+    @JsonIgnore
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 }

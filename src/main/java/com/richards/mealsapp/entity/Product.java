@@ -13,13 +13,13 @@ import javax.persistence.*;
 @Table(name = "product_tbl")
 public class Product extends BaseEntity {
     private String name;
-    private Integer quantity;
+    private Integer availableQty;
     private Double price;
     private Integer rating;
     private String imageUrl;
     @Column(length=1000)
     private String description;
     @OneToOne
-    @JoinColumn(name = "subcategory_id")
-    private Subcategory subcategory;
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

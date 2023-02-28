@@ -10,9 +10,10 @@ import java.util.stream.Collectors;
 import static com.richards.mealsapp.enums.UserAuthority.*;
 
 public enum UserRole {
-    CUSTOMER(Sets.newHashSet()),
-    ADMIN(Sets.newHashSet(PRODUCT_READ, PRODUCT_WRITE, CUSTOMER_READ, CUSTOMER_WRITE)),
-    ADMINTRAINEE(Sets.newHashSet(PRODUCT_READ, CUSTOMER_READ));
+    GUEST(Sets.newHashSet(PRODUCT_READ)),
+    CUSTOMER(Sets.newHashSet(PRODUCT_READ)),
+    ADMIN(Sets.newHashSet(PRODUCT_READ, CUSTOMER_READ)),
+    SUPERADMIN(Sets.newHashSet(PRODUCT_READ, PRODUCT_WRITE, CUSTOMER_READ, CUSTOMER_WRITE));
 
     private final Set<UserAuthority> permissions;
 

@@ -35,10 +35,11 @@ import static com.richards.mealsapp.enums.UserRole.*;
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    private final String[] WHITE_LISTED_URLS = { "/", "index", "/css/*", "/js/*", "/api/v1/products/**", "/checkuser",
-            "/api/v1/pickup/**", "/api/v1/auth/**","/v2/api-docs/**", "/v3/api-docs/**",
-            "/configuration/**", "/swagger*/**","/swagger-ui/**","/webjars/**", "/swagger-ui.html", "/api/v1/category/**",
-            "/api/v1/subcategory/**", "/api/v1/state/**", "/api/v1/products/new-arrivals", "/api/v1/products/best-selling"
+    String PATH = "/api/v1/";
+    private final String[] WHITE_LISTED_URLS = { "/", "index", "/css/*", "/js/*", PATH + "products/**", "/checkuser",
+            PATH + "pickup/**", PATH + "auth/**", "/v3/api-docs/**", PATH + "cart/**",
+            "/configuration/**", "/swagger*/**","/swagger-ui/**","/webjars/**", "/swagger-ui.html", PATH + "category/**",
+            PATH + "subcategory/**", PATH + "state/**"
     };
 
     private final AppUserDetailsService appUserDetailsService;

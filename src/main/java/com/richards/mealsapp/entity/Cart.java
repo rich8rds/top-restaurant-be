@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -14,8 +15,9 @@ import java.util.Set;
 @AllArgsConstructor
 @Table(name = "cart_tbl")
 public class Cart extends BaseEntity {
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL)
-    private Set<CartItem> cartCartItems;
+     private Set<CartItem> cartItems = new HashSet<>();
     private Double total = 0D;
     @JsonIgnore
     @OneToOne(mappedBy = "cart", cascade = CascadeType.ALL)
