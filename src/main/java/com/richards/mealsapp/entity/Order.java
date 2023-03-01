@@ -32,6 +32,10 @@ public class Order extends BaseEntity {
     private DeliveryStatus deliveryStatus;
     @Enumerated(EnumType.STRING)
     private ModeOfDelivery modeOfDelivery;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "wallet_id", referencedColumnName = "id")
+    private Wallet wallet;
     @OneToMany
     @JoinColumn(name="order_id", referencedColumnName="id")
     Set<OrderItem> orderItems = new HashSet<>();

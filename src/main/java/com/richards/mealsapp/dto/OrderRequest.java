@@ -18,6 +18,6 @@ public class OrderRequest {
     private Double deliveryFee;
     private String modeOfDelivery;
     private Double discount;
-    private String address;
+    private Long addressId;
     private String pickupCenterEmail;
 }

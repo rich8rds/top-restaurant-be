@@ -13,7 +13,15 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Table(name = "address_tbl")
 public class Address extends BaseEntity {
-    private String name;
+    private String fullName;
+    private String phone;
+    private String emailAddress;
+    private String street;
+    private String city;
+    private String state;
+    private String country;
+    private Boolean isDefault;
+
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "customer_id")

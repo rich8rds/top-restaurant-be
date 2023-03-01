@@ -30,6 +30,10 @@ public class Customer extends BaseEntity {
     @OneToMany(cascade = CascadeType.ALL)
     private Set<Product> favorites = new HashSet<>();
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "wallet_id", referencedColumnName = "id")
+    private Wallet wallet;
+
     @JsonIgnore
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     private Set<Address> addresses;

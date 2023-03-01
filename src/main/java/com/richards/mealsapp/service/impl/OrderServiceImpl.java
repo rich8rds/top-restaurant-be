@@ -2,15 +2,10 @@ package com.richards.mealsapp.service.impl;
 
 import com.richards.mealsapp.dto.OrderRequest;
 import com.richards.mealsapp.entity.*;
-import com.richards.mealsapp.enums.DeliveryStatus;
-import com.richards.mealsapp.enums.ModeOfDelivery;
-import com.richards.mealsapp.enums.ResponseCodeEnum;
-import com.richards.mealsapp.enums.TransactionStatus;
+import com.richards.mealsapp.enums.*;
 import com.richards.mealsapp.exceptions.ResourceNotFoundException;
 import com.richards.mealsapp.exceptions.UnauthorizedException;
-import com.richards.mealsapp.repository.CustomerRepository;
-import com.richards.mealsapp.repository.OrderRepository;
-import com.richards.mealsapp.repository.PickupCenterRepository;
+import com.richards.mealsapp.repository.*;
 import com.richards.mealsapp.response.BaseResponse;
 import com.richards.mealsapp.service.CartService;
 import com.richards.mealsapp.service.OrderService;
@@ -27,10 +22,11 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
     private final PickupCenterRepository pickupCenterRepository;
-
+    private final TransactionRepository transactionRepository;
     private final CartService cartService;
 
     @Override
@@ -48,13 +44,20 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal bdTotal  = pickupCenter.getDeliveryFee()
                 .add(BigDecimal.valueOf(cart.getTotal()));
-        Address address = Address.builder()
-                .name(orderRequest.getAddress())
-                .customer(loggedInCustomer)
+
+        Address address = addressRepository.findById(orderRequest.getAddressId())
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+
+        Transaction transaction = Transaction.builder()
+                .wallet(loggedInCustomer.getWallet())
+                .amount(orderRequest.getGrandTotal().toString())
+                .reference(UUID.randomUUID().toString())
+                .purpose(PaymentPurpose.PURCHASE)
+                .status(TransactionStatus.COMPLETED)
                 .build();
 
+
         Order order = Order.builder()
-                .reference(UUID.randomUUID().toString())
                 .grandTotal(bdTotal)
                 .deliveryFee(pickupCenter.getDeliveryFee())
                 .pickupCenter(pickupCenter)
@@ -79,8 +82,9 @@ public class OrderServiceImpl implements OrderService {
             savedOrder.getOrderItems().add(orderItem);
         });
 
+        transaction.setOrder(savedOrder);
+        transactionRepository.save(transaction);
         cartService.clearCart("");
-
         return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Order made successfully!");
     }
 }
