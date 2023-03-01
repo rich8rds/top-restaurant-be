@@ -45,4 +45,11 @@ public class CartController {
         return cartService.reduceCartItemQuantity(productId, anonymousId);
     }
 
+
+    //clear cart
+    @PostMapping("/cart/clear")
+    public BaseResponse<String> clearCart(@RequestParam(defaultValue = "") String anonymousId) {
+        return cartService.clearCart(anonymousId);
+    }
+
 }

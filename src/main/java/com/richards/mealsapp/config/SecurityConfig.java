@@ -37,7 +37,7 @@ import static com.richards.mealsapp.enums.UserRole.*;
 public class SecurityConfig {
     String PATH = "/api/v1/";
     private final String[] WHITE_LISTED_URLS = { "/", "index", "/css/*", "/js/*", PATH + "products/**", "/checkuser",
-            PATH + "pickup/**", PATH + "auth/**", "/v3/api-docs/**", PATH + "cart/**",
+            PATH + "pickup/**", PATH + "auth/**", "/v3/api-docs/**", PATH + "order/**", PATH + "cart/**",
             "/configuration/**", "/swagger*/**","/swagger-ui/**","/webjars/**", "/swagger-ui.html", PATH + "category/**",
             PATH + "subcategory/**", PATH + "state/**"
     };

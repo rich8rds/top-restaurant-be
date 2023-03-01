@@ -51,7 +51,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CustomerRepository customerRepository;
     private final TokenRepository tokenRepository;
-    private final CartItemRepository cartItemRepository;
     private final CartRepository cartRepository;
 
     @Override
@@ -90,33 +89,50 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public BaseResponse<String> registerUser(SignupRequest signupRequest, HttpServletRequest request) {
-        boolean emailExists = personRepository.existsByEmail(signupRequest.getEmail());
-        if (emailExists) {
-            System.out.println("EMAIL EXISTS");
-            throw new AlreadyExistsException("User Already Exists!");
+        Person person;
+            boolean emailExists = personRepository.existsByEmail(signupRequest.getEmail());
+            if (emailExists)
+                throw new AlreadyExistsException("User Already Exists!");
+
+       String anonymousId = signupRequest.getAnonymousId();
+        if(anonymousId != null && anonymousId.length() > 1) {
+           person = personRepository.findByEmail(anonymousId)
+                   .orElseThrow(() -> new UsernameNotFoundException("Guest does not exist"));
+
+            person.setFirstName(signupRequest.getFirstName());
+            person.setLastName(signupRequest.getLastName());
+            person.setEmail(signupRequest.getEmail());
+            person.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+            person.setRole(UserRole.CUSTOMER);
+            person.setPhone(signupRequest.getPhone());
+            person.setIsAccountLocked(true);
+            person.setIsEnabled(false);
+            person.setAddress(signupRequest.getAddress() != null ? signupRequest.getAddress() : "");
+            person.setGender(Gender.valueOf(signupRequest.getGender() == null ? Gender.OTHER.name() : signupRequest.getGender()));
+        }else {
+
+            person = Person.builder()
+                    .firstName(signupRequest.getFirstName())
+                    .lastName(signupRequest.getLastName())
+                    .email(signupRequest.getEmail())
+                    .password(passwordEncoder.encode(signupRequest.getPassword()))
+                    .role(UserRole.CUSTOMER)
+                    .phone(signupRequest.getPhone())
+                    .isAccountLocked(true)
+                    .isEnabled(false)
+                    .address(signupRequest.getAddress() != null ? signupRequest.getAddress() : "")
+                    .gender(Gender.valueOf(signupRequest.getGender() == null ? Gender.OTHER.name() : signupRequest.getGender()))
+                    .build();
+
         }
+            Person savedPerson = personRepository.save(person);
+            Cart cart = cartRepository.save(new Cart());
+            Customer customer = Customer.builder().person(savedPerson).cart(cart).build();
+            Customer savedCustomer = customerRepository.save(customer);
+            cart.setCustomer(savedCustomer);
+            cartRepository.save(cart);
 
-        Person person = Person.builder()
-                .firstName(signupRequest.getFirstName())
-                .lastName(signupRequest.getLastName())
-                .email(signupRequest.getEmail())
-                .password(passwordEncoder.encode(signupRequest.getPassword()))
-                .role(UserRole.CUSTOMER)
-                .phone(signupRequest.getPhone())
-                .isAccountLocked(true)
-                .isEnabled(false)
-                .address(signupRequest.getAddress() != null ? signupRequest.getAddress() : "")
-                .gender(Gender.valueOf(signupRequest.getGender() == null ? Gender.OTHER.name() : signupRequest.getGender()))
-                .build();
-
-        Person savedPerson = personRepository.save(person);
-        Cart cart = cartRepository.save(new Cart());
-        Customer customer = Customer.builder().person(savedPerson).cart(cart).build();
-        Customer savedCustomer = customerRepository.save(customer);
-        cart.setCustomer(savedCustomer);
-        cartRepository.save(cart);
-
-        completeEvent(savedPerson, REGISTRATION, request);
+            completeEvent(savedPerson, REGISTRATION, request);
 
         return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Check your email to get verified");
     }

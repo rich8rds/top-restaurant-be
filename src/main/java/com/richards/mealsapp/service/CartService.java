@@ -14,4 +14,6 @@ public interface CartService {
     BaseResponse<String> addItemQuantityToCart(Long productId, String anonymousId);
 
     BaseResponse<String> reduceCartItemQuantity(Long productId, String anonymousId);
+
+    BaseResponse<String> clearCart(String anonymousId);
 }

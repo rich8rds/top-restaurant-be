@@ -165,6 +165,19 @@ public class CartServiceImpl implements CartService {
         }
         return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Item quantity increased");
     }
+
+    @Override
+    public BaseResponse<String> clearCart(String anonymousId) {
+        Customer customer = getCustomer(anonymousId);
+        Cart cart = customer.getCart();
+        Set<CartItem> cartItems = cart.getCartItems();
+        cartItems.clear();
+        cart.setCartItems(cartItems);
+        cart.setTotal(0.0);
+        cartRepository.save(cart);
+        return new BaseResponse<>(ResponseCodeEnum.SUCCESS, "Cart cleared successfully");
+    }
+
     private Person getPerson(String email) {
         return personRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User does not exist!"));

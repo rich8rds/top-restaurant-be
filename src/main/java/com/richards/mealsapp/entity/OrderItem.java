@@ -11,8 +11,8 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "cart_item_tbl")
-public class CartItem extends BaseEntity {
+@Table(name = "order_item_tbl")
+public class OrderItem extends BaseEntity {
     private String productName;
     private String imageUrl;
     private Integer orderedQty;
@@ -21,6 +21,10 @@ public class CartItem extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "cart_id")
     private Cart cart;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "order_id", referencedColumnName = "id")
+    private Order order;
     @OneToOne
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
