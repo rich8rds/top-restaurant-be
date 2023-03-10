@@ -8,6 +8,7 @@ spring:
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
   company.email: funitureoakland@gmail.com
+#  superAdmin.email: rbukunmi8@gmail.com
 
 
   security:
@@ -38,3 +39,5 @@ spring:
 rsa:
   private-key: classpath:certs/private.pem
   public-key: classpath:certs/public.pem
+
+

@@ -56,4 +56,22 @@ public class TransactionMail {
         }
         return "Mail Sent";
     }
+
+    public String notifySuperAdminOfBalance(String customerEmail, BigDecimal grandTotal) {
+        String message =
+            "<html> " +
+                "<body>" +
+                "<h5>Hi, Owner <h5> <br>" +
+                "<p>New Transaction balance is "+ UserUtil.formatToLocale(grandTotal)+"<p>" +
+                "</body> " +
+            "</html>";
+
+        try {
+            javaMailService.sendMailAlt(customerEmail, "TRANSACTION ALERT", message);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return "Mail Sent";
+    }
+
 }

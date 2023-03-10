@@ -7,7 +7,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FundWalletRequest {
+public class WalletRequest {
     private Double amount;
 
 }

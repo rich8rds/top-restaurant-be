@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @Setter
-public class FundWalletResponse {
+public class WalletResponse {
     private String fullName;
     private BigDecimal depositAmount;
     private BigDecimal newBalance;

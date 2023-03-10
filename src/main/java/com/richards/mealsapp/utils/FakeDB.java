@@ -4,6 +4,7 @@ import com.richards.mealsapp.entity.Category;
 import com.richards.mealsapp.entity.Product;
 import com.richards.mealsapp.repository.CategoryRepository;
 import com.richards.mealsapp.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import java.util.List;
 @Configuration
 public class FakeDB {
     @Bean
+    @Qualifier("MyCommandLineRunner")
     CommandLineRunner commandLineRunner(ProductRepository productRepository, CategoryRepository categoryRepository) {
         return args -> {
 

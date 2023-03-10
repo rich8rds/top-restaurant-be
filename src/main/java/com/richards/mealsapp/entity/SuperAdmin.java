@@ -12,7 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Builder
 @Table(name = "super_admin_tbl")
-public class SuperAdmin extends BaseEntity {
+public class SuperAdmin extends BaseEntity{
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "person_id")
     private Person person;
@@ -21,3 +21,5 @@ public class SuperAdmin extends BaseEntity {
     @JoinColumn(name = "wallet_id")
     private Wallet wallet;
 }
+// some changes
+//chage-2 

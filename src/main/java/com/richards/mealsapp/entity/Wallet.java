@@ -22,7 +22,7 @@ public class Wallet extends BaseEntity {
 
     @JsonIgnore
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<Order> transactions;
+    private Set<Transaction> transactions;
 
     @JsonIgnore
     @OneToOne(mappedBy = "wallet", cascade = CascadeType.ALL)

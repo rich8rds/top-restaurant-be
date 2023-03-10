@@ -44,4 +44,8 @@ public class Person extends BaseEntity {
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id")
     private Customer customer;
+    @JsonIgnore
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+    @JoinColumn(name = "super_admin_id")
+    private SuperAdmin superAdmin;
 }
