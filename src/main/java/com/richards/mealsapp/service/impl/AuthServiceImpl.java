@@ -156,6 +156,9 @@ public class AuthServiceImpl implements AuthService {
         Token verificationToken = tokenRepository.findByToken(token).orElseThrow(
                 () -> new ResourceNotFoundException("Token Not Found"));
 
+        if(verificationToken.getExpirationTime() > Instant.now().getEpochSecond())
+            throw new BadCredentialsException("Token has expired. Resend token again");
+
         Person person = personRepository.findById(verificationToken.getPerson().getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User with email does not exist"));
 

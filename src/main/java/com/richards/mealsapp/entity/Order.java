@@ -42,9 +42,6 @@ public class Order extends BaseEntity {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
     private Address address;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "pickup_id")
-    private PickupCenter pickupCenter;
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "customer_id")

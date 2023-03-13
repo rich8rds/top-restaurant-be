@@ -25,7 +25,6 @@ public class OrderServiceImpl implements OrderService {
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
-    private final PickupCenterRepository pickupCenterRepository;
     private final TransactionRepository transactionRepository;
     private final CartService cartService;
 
@@ -38,12 +37,9 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         Cart cart = loggedInCustomer.getCart();
 
-        PickupCenter pickupCenter = pickupCenterRepository
-                .findByEmail(orderRequest.getPickupCenterEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Pickup center not found"));
 
-        BigDecimal bdTotal  = pickupCenter.getDeliveryFee()
-                .add(BigDecimal.valueOf(cart.getTotal()));
+        BigDecimal bdTotal = BigDecimal.valueOf(cart.getTotal());
+//                pickupCenter.getDeliveryFee().add(BigDecimal.valueOf(cart.getTotal()));
 
         Address address = addressRepository.findById(orderRequest.getAddressId())
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
@@ -59,8 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = Order.builder()
                 .grandTotal(bdTotal)
-                .deliveryFee(pickupCenter.getDeliveryFee())
-                .pickupCenter(pickupCenter)
+//                .deliveryFee(pickupCenter.getDeliveryFee())
                 .address(address)
                 .customer(loggedInCustomer)
                 .transactionStatus(TransactionStatus.PENDING)
